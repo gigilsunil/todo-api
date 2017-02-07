@@ -1,7 +1,10 @@
 var express = require('express');
+var parser= require('body-parser');
 var app = express();
 var PORT = process.env.PORT ||3000;
-var todos = [
+var todos = [];
+var nextId =  1;
+/*
 {
 	id : 1,
 	description : 'to learn',
@@ -16,8 +19,8 @@ var todos = [
 	id : 3,
 	description : 'post the letter',
 	completed : false
-}];
-
+}];*/
+app.use(parser.json());
 app.get('/todos',function(req,res)
 {
 	res.json(todos);
@@ -40,6 +43,18 @@ app.get('/todos/:id',function(req,res)
 	{
 		res.status(404).send();
 	}
+});
+
+app.post('/todos',function(req,res)
+{
+	var body = req.body;
+	//console.log(body);
+	//var object = JSON.parse(body);
+	//console.log(object);
+	body.id = nextId++;
+	todos.push(body);
+	//console.log(body.description);
+	res.json(todos);
 });
 
 app.get('/',function(req,res)
