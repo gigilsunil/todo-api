@@ -49,7 +49,70 @@ app.get('/todos/:id',function(req,res)
 	if(matchedTodo)
 	res.json(matchedTodo);
 else
-	res.status(404).send();
+	res.status(404).send();//res.status(404).json({"error":"bad request"})
+});
+app.delete('/todos/:id',function(req,res)
+{
+	var idChk = parseInt(req.params.id,10);
+	var matchedTodo = _.findWhere(todos,{id:idChk});
+	/*todos.forEach(function(x)
+	{
+		matchedId =0;
+		if(typeof x == 'object' && x.id === id)
+		{
+			matchedId=1;
+			res.json(x);
+
+		}
+	});
+	if(matchedId === 0)
+	{
+		res.status(404).send();
+	}*/
+	if(matchedTodo)
+	{
+	todos = _.without(todos,matchedTodo);
+	res.json(todos);
+}
+else
+	res.status(404).json({"error":"bad request"})
+});
+
+app.put('/todos/:id',function(req,res)
+{
+	var body =_.pick(req.body,'description','completed');
+	var idChk = parseInt(req.params.id,10);
+	var matchedTodo = _.findWhere(todos,{id:idChk});
+	if(!matchedTodo)
+	{	
+		res.status(404).json({"error":"bad request"});
+		}
+	var validAttributes={};
+	if(body.hasOwnProperty('completed')&& _.isBoolean(body.completed))
+	{
+		validAttributes.completed=body.completed;
+	}
+	else if(body.hasOwnProperty('completed'))
+	{
+		res.status(404).send();
+	}
+	if(body.hasOwnProperty('description') && _.isString(body.description))
+	{
+		validAttributes.description=body.description;
+	}
+	if(body.hasOwnProperty('description'))
+	{
+		res.status(404).send();
+	}
+	var idChk = parseInt(req.params.id,10);
+	var matchedTodo = _.findWhere(todos,{id:idChk});
+	if(matchedTodo)
+	{	
+		_.extend(matchedTodo,validAttributes);//yhis will update the array,
+		//Javascript objects are pased by reference, not by value.
+		res.json(todos);
+	}
+
 });
 
 app.post('/todos',function(req,res)
