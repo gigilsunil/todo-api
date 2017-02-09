@@ -46,7 +46,26 @@ app.get('/todos',function(req,res)
 app.get('/todos/:id',function(req,res)
 {
 	var idChk = parseInt(req.params.id,10);
-	var matchedTodo = _.findWhere(todos,{id:idChk});
+	console.log(idChk);
+	db.todo.findById(idChk).then(function(todo)
+	{
+		//console.log(todo);
+		//console.log(!todo);
+		if(todo)
+		{
+			res.send(todo.toJSON());
+		}
+		else
+		{
+			res.status(404).send();
+		}
+		
+	},function(e)
+	{
+		res.status(500).json(e);
+	});
+
+	// matchedTodo = _.findWhere(todos,{id:idChk});
 	/*todos.forEach(function(x)
 	{
 		matchedId =0;
@@ -61,10 +80,10 @@ app.get('/todos/:id',function(req,res)
 	{
 		res.status(404).send();
 	}*/
-	if(matchedTodo)
+	/*if(matchedTodo)
 	res.json(matchedTodo);
 else
-	res.status(404).send();//res.status(404).json({"error":"bad request"})
+	res.status(404).send();//res.status(404).json({"error":"bad request"})*/
 });
 app.delete('/todos/:id',function(req,res)
 {
