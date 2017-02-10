@@ -38,7 +38,6 @@ app.get('/todos',function(req,res)
 		filteredTodos = _.where(filteredTodos,{completed:false})
 	}
 
-
 	res.json(filteredTodos);
 });
 
@@ -88,8 +87,26 @@ else
 app.delete('/todos/:id',function(req,res)
 {
 	var idChk = parseInt(req.params.id,10);
-	var matchedTodo = _.findWhere(todos,{id:idChk});
-	/*todos.forEach(function(x)
+	db.todo.destroy({
+		where : {
+			id : idChk
+		}
+	}).then(function(x)
+	{
+		if(x===1)
+			{
+				res.send("Row deleted");
+			}
+			else
+			{
+				res.status(404).send("No id");
+			}
+	},function(e)
+	{
+		res.status(500).json(e);
+	})
+	/*var matchedTodo = _.findWhere(todos,{id:idChk});
+	todos.forEach(function(x)
 	{
 		matchedId =0;
 		if(typeof x == 'object' && x.id === id)
@@ -102,14 +119,14 @@ app.delete('/todos/:id',function(req,res)
 	if(matchedId === 0)
 	{
 		res.status(404).send();
-	}*/
+	}
 	if(matchedTodo)
 	{
-	todos = _.without(todos,matchedTodo);
-	res.json(todos);
+	todos = _.without(todos,matchedTodo);*/
+	/*res.json(todos);
 }
 else
-	res.status(404).json({"error":"bad request"})
+	res.status(404).json({"error":"bad request"})*/
 });
 
 app.put('/todos/:id',function(req,res)
@@ -142,7 +159,7 @@ app.put('/todos/:id',function(req,res)
 	var matchedTodo = _.findWhere(todos,{id:idChk});
 	if(matchedTodo)
 	{	
-		_.extend(matchedTodo,validAttributes);//yhis will update the array,
+		_.extend(matchedTodo,validAttributes);//copy all the values from the sourse to the detinationyhis will update the array,
 		//Javascript objects are pased by reference, not by value.
 		res.json(todos);
 	}
