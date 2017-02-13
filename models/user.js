@@ -46,6 +46,7 @@ module.exports = function(sequelize, Datatypes) {
 			authenticate: function(body) {
 				return new Promise(function(resolve, reject) {
 					if (typeof body.email === 'string' && typeof body.password === 'string') {
+						//console.log(body.email);
 						user.findOne({
 								where: {
 									'email': body.email
@@ -58,8 +59,8 @@ module.exports = function(sequelize, Datatypes) {
 								//res.send(user.toPublicJSON());
 								resolve(user);
 
-							}, function(user) {
-								return reject();
+							}, function(e) {
+								reject();
 							})
 							//res.json(body);
 					} else
