@@ -209,7 +209,23 @@ app.post('/todos', function(req, res) {
 	//console.log(body.description);
 	res.json(todos);*/
 });
-
+app.post('/users', function(req, res) {
+	var body = _.pick(req.body, 'email', 'password');
+	console.log(body);
+	db.user.create(body).then(function(user) {
+		if (user)
+		{
+			console.log(user);
+			res.send(user.toJSON());
+		}
+		else
+			res.status(404).json({
+				"error": "bad request"
+			});
+	}, function(e) {
+		res.status(400).json(e);
+	});
+});
 app.get('/', function(req, res) {
 	res.send('Todo api root');
 });
