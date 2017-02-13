@@ -158,9 +158,9 @@ app.put('/todos/:id', function(req, res) {
 	}
 
 
-	db.todo.findById(idChk).then(function(todo) {
+	db.todo.findById(idChk).then(function(todo) {   //findById() - model method
 		if (todo) {
-			todo.update(validAttributes).then(function(todo) {
+			todo.update(validAttributes).then(function(todo) {    //update() - is an instance method called on an individual todo method
 				res.send(todo.toJSON());
 			}, function(e) {
 				res.send(e);
@@ -216,7 +216,7 @@ app.post('/users', function(req, res) {
 		if (user)
 		{
 			console.log(user);
-			res.send(user.toJSON());
+			res.send(user.toPublicJSON());
 		}
 		else
 			res.status(404).json({
@@ -229,7 +229,7 @@ app.post('/users', function(req, res) {
 app.get('/', function(req, res) {
 	res.send('Todo api root');
 });
-db.sequelize.sync().then(function() {
+db.sequelize.sync({/*force:true*/}).then(function() {
 	app.listen(PORT, function() {
 		console.log('Express listening on port' + PORT);
 	});
