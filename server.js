@@ -2,6 +2,7 @@ var express = require('express');
 var parser = require('body-parser');
 var _ = require('underscore');
 var db = require('./db.js');
+var bcrypt = require('bcrypt');
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -158,9 +159,9 @@ app.put('/todos/:id', function(req, res) {
 	}
 
 
-	db.todo.findById(idChk).then(function(todo) {   //findById() - model method
+	db.todo.findById(idChk).then(function(todo) { //findById() - model method
 		if (todo) {
-			todo.update(validAttributes).then(function(todo) {    //update() - is an instance method called on an individual todo method
+			todo.update(validAttributes).then(function(todo) { //update() - is an instance method called on an individual todo method
 				res.send(todo.toJSON());
 			}, function(e) {
 				res.send(e);
@@ -213,12 +214,10 @@ app.post('/users', function(req, res) {
 	var body = _.pick(req.body, 'email', 'password');
 	console.log(body);
 	db.user.create(body).then(function(user) {
-		if (user)
-		{
-			console.log(user);
+		if (user) {
+			//console.log(user);
 			res.send(user.toPublicJSON());
-		}
-		else
+		} else
 			res.status(404).json({
 				"error": "bad request"
 			});
@@ -226,10 +225,44 @@ app.post('/users', function(req, res) {
 		res.status(400).json(e);
 	});
 });
+app.post('/users/login', function(req, res) {
+	var body = _.pick(req.body, 'email', 'password');
+
+	db.user.authenticate(body).then(function()
+	{
+		res.json(user.toPublicJson());
+	},function(e)
+	{
+		res.status(401).json(e);
+	});
+	/*if (typeof body.email === 'string' && typeof body.password === 'string') {
+		db.user.findOne({
+			where :{
+				'email' : body.email
+				
+			}
+		}).then(function(user)
+		{
+			console.log(user);
+			if(!user || !bcrypt.compareSync(body.password,user.get('password_hash')))
+				return res.status(401).send();
+			//else
+			res.send(user.toPublicJSON());
+
+		},function(user)
+		{
+			res.status(500).send();
+		})
+		//res.json(body);
+	} else
+		res.status(400).send();
+
+*/
+});
 app.get('/', function(req, res) {
 	res.send('Todo api root');
 });
-db.sequelize.sync({/*force:true*/}).then(function() {
+db.sequelize.sync({force:true}).then(function() {
 	app.listen(PORT, function() {
 		console.log('Express listening on port' + PORT);
 	});
