@@ -3,6 +3,7 @@ var parser = require('body-parser');
 var _ = require('underscore');
 var db = require('./db.js');
 var bcrypt = require('bcrypt');
+var middleware = require('./middleware.js')(db);
 
 var app = express();
 var PORT = process.env.PORT || 3000;
@@ -25,7 +26,7 @@ var nextId = 1;
 	completed : false
 }];*/
 app.use(parser.json());
-app.get('/todos', function(req, res) {
+app.get('/todos', middleware.requireAuthentication, function(req, res) {
 	var queryParams = req.query;
 	//var filteredTodos = todos;
 	var where = {};
@@ -68,7 +69,7 @@ app.get('/todos', function(req, res) {
 });
 
 //request.params.id
-app.get('/todos/:id', function(req, res) {
+app.get('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	var idChk = parseInt(req.params.id, 10);
 	console.log(idChk);
 	db.todo.findById(idChk).then(function(todo) {
@@ -104,7 +105,7 @@ app.get('/todos/:id', function(req, res) {
 else
 	res.status(404).send();//res.status(404).json({"error":"bad request"})*/
 });
-app.delete('/todos/:id', function(req, res) {
+app.delete('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	var idChk = parseInt(req.params.id, 10);
 	db.todo.destroy({
 			where: {
@@ -143,7 +144,7 @@ else
 	res.status(404).json({"error":"bad request"})*/
 });
 
-app.put('/todos/:id', function(req, res) {
+app.put('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	var body = _.pick(req.body, 'description', 'completed');
 	var idChk = parseInt(req.params.id, 10);
 	var validAttributes = {};
@@ -183,7 +184,7 @@ app.put('/todos/:id', function(req, res) {
 
 });
 
-app.post('/todos', function(req, res) {
+app.post('/todos', middleware.requireAuthentication, function(req, res) {
 	var body = req.body;
 	var pickedBody = _.pick(body, 'description', 'completed');
 
