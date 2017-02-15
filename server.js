@@ -30,7 +30,7 @@ app.get('/todos', middleware.requireAuthentication, function(req, res) {
 	var queryParams = req.query;
 	//var filteredTodos = todos;
 	var where = {
-		userid: req.user.get('id')
+		userId: req.user.get('id')
 	};
 	if (queryParams.hasOwnProperty('completed') && queryParams.completed == 'true') {
 		where.completed = true;
@@ -77,7 +77,7 @@ app.get('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	db.todo.findOne({
 		where : {
 			id: idChk,
-			userid: req.user.get('id')
+			userId: req.user.get('id')
 		}
 	}).then(function(todo) {
 		//console.log(todo);
@@ -117,7 +117,7 @@ app.delete('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	db.todo.destroy({
 			where: {
 				id: idChk,
-				userid : req.user.get('id')
+				userId : req.user.get('id')
 			}
 		}).then(function(x) {
 			if (x === 1) {
@@ -170,7 +170,7 @@ app.put('/todos/:id', middleware.requireAuthentication, function(req, res) {
 
 	db.todo.findOne({where : {
 			id: idChk,
-			userid: req.user.get('id')
+			userId: req.user.get('id')
 		}}).then(function(todo) { //findById(),findOne - model method
 		if (todo) {
 			todo.update(validAttributes).then(function(todo) { //update() - is an instance method called on an individual todo method
