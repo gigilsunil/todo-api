@@ -27,7 +27,7 @@ module.exports = function(sequelize, Datatypes) {
 				len: [7, 100]
 			},
 			set: function(value) {
-				var salt = bcrypt.genSaltSync(10); //decrypt
+				var salt = bcrypt.genSaltSync(10); 
 				var hashedPassword = bcrypt.hashSync(value, salt);
 
 				this.setDataValue('password', value);

@@ -75,7 +75,7 @@ app.get('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	var idChk = parseInt(req.params.id, 10);
 	console.log(idChk);
 	db.todo.findOne({
-		where : {
+		where: {
 			id: idChk,
 			userId: req.user.get('id')
 		}
@@ -117,7 +117,7 @@ app.delete('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	db.todo.destroy({
 			where: {
 				id: idChk,
-				userId : req.user.get('id')
+				userId: req.user.get('id')
 			}
 		}).then(function(x) {
 			if (x === 1) {
@@ -168,10 +168,12 @@ app.put('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	}
 
 
-	db.todo.findOne({where : {
+	db.todo.findOne({
+		where: {
 			id: idChk,
 			userId: req.user.get('id')
-		}}).then(function(todo) { //findById(),findOne - model method
+		}
+	}).then(function(todo) { //findById(),findOne - model method
 		if (todo) {
 			todo.update(validAttributes).then(function(todo) { //update() - is an instance method called on an individual todo method
 				res.send(todo.toJSON());
@@ -243,12 +245,23 @@ app.post('/users', function(req, res) {
 });
 app.post('/users/login', function(req, res) {
 	var body = _.pick(req.body, 'email', 'password');
+	//var userInstance;
 
 	db.user.authenticate(body).then(function(user) {
 		var token = user.generateToken('authentication');
-		if (token)
-			res.header('Auth', token).json(user.toPublicJSON());
-		else
+
+		if (token) {
+			console.log(token);
+			db.token.create({
+				token: token
+			}).then(function(tokenInstance) {
+				//console.log(token);
+				res.header('Auth', tokenInstance.get('token')).json(user.toPublicJSON());
+			}).catch(function(e) {
+				console.log(e);
+			})
+
+		} else
 			res.status(401).json();
 	}, function(e) {
 		res.status(401).json(e);
@@ -277,6 +290,22 @@ app.post('/users/login', function(req, res) {
 
 */
 });
+app.delete('/users/logout',middleware.requireAuthentication, function(req, res) {
+	//console.log(req.token.get('hashToken')); when set req.token=tokenInstance in middleware.js
+//req.token.destroy().then(function(row) {
+	db.token.destroy({
+		where: {
+			hashToken: req.token
+		}
+	}).then(function(row) {
+		res.status(204).send();
+	}).catch(function(e) {
+		res.status(500).send();
+	})
+
+});
+
+
 app.get('/', function(req, res) {
 	res.send('Todo api root');
 });
