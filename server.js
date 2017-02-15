@@ -29,7 +29,9 @@ app.use(parser.json());
 app.get('/todos', middleware.requireAuthentication, function(req, res) {
 	var queryParams = req.query;
 	//var filteredTodos = todos;
-	var where = {};
+	var where = {
+		userid: req.user.get('id')
+	};
 	if (queryParams.hasOwnProperty('completed') && queryParams.completed == 'true') {
 		where.completed = true;
 	} else if (queryParams.hasOwnProperty('completed') && queryParams.completed == 'false') {
@@ -72,7 +74,12 @@ app.get('/todos', middleware.requireAuthentication, function(req, res) {
 app.get('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	var idChk = parseInt(req.params.id, 10);
 	console.log(idChk);
-	db.todo.findById(idChk).then(function(todo) {
+	db.todo.findOne({
+		where : {
+			id: idChk,
+			userid: req.user.get('id')
+		}
+	}).then(function(todo) {
 		//console.log(todo);
 		//console.log(!todo);
 		if (todo) {
@@ -109,7 +116,8 @@ app.delete('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	var idChk = parseInt(req.params.id, 10);
 	db.todo.destroy({
 			where: {
-				id: idChk
+				id: idChk,
+				userid : req.user.get('id')
 			}
 		}).then(function(x) {
 			if (x === 1) {
@@ -160,7 +168,10 @@ app.put('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	}
 
 
-	db.todo.findById(idChk).then(function(todo) { //findById() - model method
+	db.todo.findOne({where : {
+			id: idChk,
+			userid: req.user.get('id')
+		}}).then(function(todo) { //findById(),findOne - model method
 		if (todo) {
 			todo.update(validAttributes).then(function(todo) { //update() - is an instance method called on an individual todo method
 				res.send(todo.toJSON());
@@ -189,9 +200,13 @@ app.post('/todos', middleware.requireAuthentication, function(req, res) {
 	var pickedBody = _.pick(body, 'description', 'completed');
 
 	db.todo.create(pickedBody).then(function(todo) {
-		if (todo)
-			res.send(todo.toJSON());
-		else
+		if (todo) {
+			req.user.addTodo(todo).then(function() {
+				return todo.reload();
+			}).then(function() {
+				res.send(todo.toJSON());
+			});
+		} else
 			res.status(404).json({
 				"error": "bad request"
 			});
@@ -229,15 +244,13 @@ app.post('/users', function(req, res) {
 app.post('/users/login', function(req, res) {
 	var body = _.pick(req.body, 'email', 'password');
 
-	db.user.authenticate(body).then(function(user)
-	{
+	db.user.authenticate(body).then(function(user) {
 		var token = user.generateToken('authentication');
-		if(token)
-			res.header('Auth',token).json(user.toPublicJSON());
+		if (token)
+			res.header('Auth', token).json(user.toPublicJSON());
 		else
 			res.status(401).json();
-	},function(e)
-	{
+	}, function(e) {
 		res.status(401).json(e);
 	});
 	/*if (typeof body.email === 'string' && typeof body.password === 'string') {
@@ -267,7 +280,9 @@ app.post('/users/login', function(req, res) {
 app.get('/', function(req, res) {
 	res.send('Todo api root');
 });
-db.sequelize.sync({force:true}).then(function() {
+db.sequelize.sync({
+	force: true
+}).then(function() {
 	app.listen(PORT, function() {
 		console.log('Express listening on port' + PORT);
 	});
